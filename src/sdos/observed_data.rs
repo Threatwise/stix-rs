@@ -137,6 +137,6 @@ mod tests {
             v.get("type").and_then(Value::as_str).unwrap(),
             "observed-data"
         );
-        assert!(v.get("object-refs").is_some());
+        assert!(v.get("object_refs").is_some());
     }
 }

@@ -67,7 +67,6 @@ impl From<SoftwarePackage> for crate::StixObjectEnum {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use serde_json::json;
 
     #[test]

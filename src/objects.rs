@@ -552,8 +552,6 @@ impl From<Sighting> for crate::StixObjectEnum {
 mod tests {
     use super::*;
     use crate::vocab::{IdentityClass, IndicatorPatternType};
-fn default_pattern_type() -> IndicatorPatternType { IndicatorPatternType::Stix }
-fn default_valid_from() -> DateTime<Utc> { Utc::now() }
     use serde_json::Value;
 
     #[test]
@@ -568,7 +566,7 @@ fn default_valid_from() -> DateTime<Utc> { Utc::now() }
         let s = serde_json::to_string(&idty).unwrap();
         let v: Value = serde_json::from_str(&s).unwrap();
         assert_eq!(v.get("type").and_then(Value::as_str).unwrap(), "identity");
-        assert_eq!(v.get("identity-class").and_then(Value::as_str).unwrap(), "organization");
+        assert_eq!(v.get("identity_class").and_then(Value::as_str).unwrap(), "organization");
         let id_field = v.get("id").and_then(Value::as_str).unwrap();
         assert!(id_field.starts_with("identity--"));
     }
@@ -585,7 +583,7 @@ fn default_valid_from() -> DateTime<Utc> { Utc::now() }
         let s = serde_json::to_string(&mw).unwrap();
         let v: Value = serde_json::from_str(&s).unwrap();
         assert_eq!(v.get("type").and_then(Value::as_str).unwrap(), "malware");
-        assert_eq!(v.get("is-family").and_then(Value::as_bool).unwrap(), true);
+        assert_eq!(v.get("is_family").and_then(Value::as_bool).unwrap(), true);
     }
 
     #[test]
@@ -601,7 +599,7 @@ fn default_valid_from() -> DateTime<Utc> { Utc::now() }
         let s = serde_json::to_string(&ind).unwrap();
         let v: Value = serde_json::from_str(&s).unwrap();
         assert_eq!(v.get("type").and_then(Value::as_str).unwrap(), "indicator");
-        assert_eq!(v.get("pattern-type").and_then(Value::as_str).unwrap(), "stix");
+        assert_eq!(v.get("pattern_type").and_then(Value::as_str).unwrap(), "stix");
     }
 
     #[test]
@@ -616,14 +614,16 @@ fn default_valid_from() -> DateTime<Utc> { Utc::now() }
         let j = serde_json::to_string(&s).unwrap();
         let v: Value = serde_json::from_str(&j).unwrap();
         assert_eq!(v.get("type").and_then(Value::as_str).unwrap(), "sighting");
-        assert_eq!(v.get("sighting-of-ref").and_then(Value::as_str).unwrap(), "malware--1111");
+        assert_eq!(v.get("sighting_of_ref").and_then(Value::as_str).unwrap(), "malware--1111");
     }
 
     #[test]
     fn missing_required_field_errors() {
+        // identity_class is now optional — builder should succeed
         let r = Identity::builder().name("No Class").build();
-        assert!(r.is_err());
+        assert!(r.is_ok());
 
+        // name is required for Malware — builder should still fail when missing
         let r2 = Malware::builder().is_family(false).build();
         assert!(r2.is_err());
     }

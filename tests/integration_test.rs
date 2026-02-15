@@ -32,6 +32,6 @@ fn test_complex_workflow() {
     // 5. Verify
     assert!(json.contains("\"type\": \"bundle\""));
     assert!(json.contains("\"x_custom_region\": \"us-east-1\""));
-    // STIX standard uses kebab-case for identity-class
-    assert!(json.contains("\"identity-class\": \"system\""));
+    // serialization uses snake_case keys for compatibility with our consumers
+    assert!(json.contains("\"identity_class\": \"system\""));
 }

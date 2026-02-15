@@ -41,7 +41,6 @@ impl From<EmailMessage> for crate::StixObjectEnum { fn from(e: EmailMessage) -> 
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use serde_json::json;
 
     #[test]

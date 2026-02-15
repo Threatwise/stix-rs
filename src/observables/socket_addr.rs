@@ -25,7 +25,6 @@ impl From<SocketAddr> for crate::StixObjectEnum { fn from(s: SocketAddr) -> Self
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use serde_json::json;
 
     #[test]

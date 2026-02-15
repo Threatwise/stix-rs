@@ -34,8 +34,8 @@ fn test_sighting_link() {
 
     let v: Value = serde_json::from_str(&j).unwrap();
 
-    assert_eq!(v.get("sighting-of-ref").and_then(Value::as_str).unwrap(), fake_malware);
-    let where_refs = v.get("where-sighted-refs").and_then(Value::as_array).unwrap();
+    assert_eq!(v.get("sighting_of_ref").and_then(Value::as_str).unwrap(), fake_malware);
+    let where_refs = v.get("where_sighted_refs").and_then(Value::as_array).unwrap();
     assert_eq!(where_refs.len(), 1);
     assert_eq!(where_refs[0].as_str().unwrap(), fake_sensor);
 }
@@ -49,8 +49,8 @@ fn test_deserialization() {
       "created": "2020-01-01T00:00:00Z",
       "modified": "2020-01-01T00:00:00Z",
       "name": "EvilWare",
-      "is-family": true,
-      "malware-types": ["ransomware"]
+      "is_family": true,
+      "malware_types": ["ransomware"]
     }
     "#;
 

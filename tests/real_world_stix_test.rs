@@ -15,12 +15,12 @@ fn test_deserialize_malware_example() {
                 "modified": "2017-05-19T13:02:31.000Z",
                 "name": "Poison Ivy",
                 "description": "Poison Ivy is a popular remote access trojan (RAT) that has been used by many groups",
-                "malware-types": ["remote-access-trojan"],
-                "is-family": true,
+                "malware_types": ["remote-access-trojan"],
+                "is_family": true,
                 "aliases": ["PIVY"],
-                "kill-chain-phases": [{
-                    "kill-chain-name": "mandiant-attack-lifecycle-model",
-                    "phase-name": "establish-foothold"
+                "kill_chain_phases": [{
+                    "kill_chain_name": "mandiant-attack-lifecycle-model",
+                    "phase_name": "establish-foothold"
                 }]
             }
         ]
@@ -50,11 +50,11 @@ fn test_deserialize_indicator_with_valid_from() {
         "modified": "2016-04-06T20:03:48.000Z",
         "name": "Malicious site hosting downloader",
         "description": "This indicator identifies the SSL certificate for the malicious site",
-        "indicator-types": ["malicious-activity"],
+        "indicator_types": ["malicious-activity"],
         "pattern": "[x509-certificate:hashes.SHA-256 = 'ef537f25c895bfa782526529a9b63d97aa631564d5d789c2b765448c8635fb6c']",
-        "pattern-type": "stix",
-        "pattern-version": "2.1",
-        "valid-from": "2016-01-01T00:00:00Z"
+        "pattern_type": "stix",
+        "pattern_version": "2.1",
+        "valid_from": "2016-01-01T00:00:00Z"
     }"#;
 
     let indicator: stix_rs::objects::Indicator = serde_json::from_str(stix_json).unwrap();
@@ -74,7 +74,7 @@ fn test_deserialize_marking_definition() {
         "created": "2017-01-20T00:00:00.000Z",
         "modified": "2017-01-20T00:00:00.000Z",
         "name": "TLP:WHITE",
-        "definition-type": "tlp",
+        "definition_type": "tlp",
         "definition": {
             "tlp": "white"
         }

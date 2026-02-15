@@ -105,6 +105,6 @@ mod tests {
         let s = serde_json::to_string(&op).unwrap();
         let v: Value = serde_json::from_str(&s).unwrap();
         assert_eq!(v.get("type").and_then(Value::as_str).unwrap(), "opinion");
-        assert!(v.get("object-refs").is_some());
+        assert!(v.get("object_refs").is_some());
     }
 }

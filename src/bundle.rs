@@ -252,6 +252,7 @@ impl Bundle {
 mod tests {
     use super::*;
     use crate::{Identity, IdentityClass, Malware, StixObjectEnum};
+    use crate::common::StixObject;
 
     #[test]
     fn bundle_serializes_objects() {
