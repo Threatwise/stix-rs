@@ -35,6 +35,13 @@ pub use vocab::*;
 pub use bundle::*;
 pub use pattern::{validate_pattern, PatternBuilder, PatternError};
 
+use uuid::Uuid;
+const SCO_NAMESPACE: Uuid = Uuid::from_u128(0x00abedb4_aa42_466c_9c01_def7442f5a74);
+
+fn generate_sco_id(object_type: &str, data: &str) -> String {
+    let id_part = Uuid::new_v5(&SCO_NAMESPACE, data.as_bytes());
+    format!("{}--{}", object_type, id_part)
+}
 use serde::{Deserialize, Serialize};
 use serde::de::Deserializer;
 use serde_json::Value;
@@ -55,10 +62,12 @@ pub enum StixObjectEnum {
     Location(Location),
     NetworkTraffic(NetworkTraffic),
     DomainName(DomainName),
+    #[serde(rename = "ipv4-addr")]
     IPv4Addr(IPv4Addr),
     Url(Url),
     Process(Process),
     Artifact(Artifact),
+    #[serde(rename = "ipv6-addr")]
     IPv6Addr(IPv6Addr),
     MacAddr(MacAddr),
     Software(Software),
@@ -87,56 +96,107 @@ pub enum StixObjectEnum {
     MarkingDefinition(MarkingDefinition),
     LanguageContent(LanguageContent),
     ExtensionDefinition(ExtensionDefinition),
+    Custom(serde_json::Value),
 }
 
 impl StixObjectEnum {
     /// Get the ID of the wrapped object
-    pub fn id(&self) -> &str {
+    pub fn name(&self) -> Option<&str> {
         match self {
-            StixObjectEnum::Identity(o) => o.id(),
-            StixObjectEnum::Malware(o) => o.id(),
-            StixObjectEnum::Indicator(o) => o.id(),
-            StixObjectEnum::ObservedData(o) => o.id(),
-            StixObjectEnum::MalwareAnalysis(o) => o.id(),
-            StixObjectEnum::Sighting(o) => o.id(),
-            StixObjectEnum::Relationship(o) => o.id(),
-            StixObjectEnum::File(_) => "",
-            StixObjectEnum::Incident(o) => o.id(),
-            StixObjectEnum::Location(o) => o.id(),
-            StixObjectEnum::NetworkTraffic(_) => "",
-            StixObjectEnum::DomainName(_) => "",
-            StixObjectEnum::IPv4Addr(_) => "",
-            StixObjectEnum::Url(_) => "",
-            StixObjectEnum::Process(_) => "",
-            StixObjectEnum::Artifact(_) => "",
-            StixObjectEnum::IPv6Addr(_) => "",
-            StixObjectEnum::MacAddr(_) => "",
-            StixObjectEnum::Software(_) => "",
-            StixObjectEnum::UserAccount(_) => "",
-            StixObjectEnum::EmailAddr(_) => "",
-            StixObjectEnum::EmailMessage(_) => "",
-            StixObjectEnum::SocketAddr(_) => "",
-            StixObjectEnum::AutonomousSystem(_) => "",
-            StixObjectEnum::SoftwarePackage(_) => "",
-            StixObjectEnum::Directory(_) => "",
-            StixObjectEnum::Mutex(_) => "",
-            StixObjectEnum::WindowsRegistryKey(_) => "",
-            StixObjectEnum::X509Certificate(_) => "",
-            StixObjectEnum::AttackPattern(o) => o.id(),
-            StixObjectEnum::Campaign(o) => o.id(),
-            StixObjectEnum::ThreatActor(o) => o.id(),
-            StixObjectEnum::Tool(o) => o.id(),
-            StixObjectEnum::Vulnerability(o) => o.id(),
-            StixObjectEnum::CourseOfAction(o) => o.id(),
-            StixObjectEnum::IntrusionSet(o) => o.id(),
-            StixObjectEnum::Infrastructure(o) => o.id(),
-            StixObjectEnum::Report(o) => o.id(),
-            StixObjectEnum::Note(o) => o.id(),
-            StixObjectEnum::Opinion(o) => o.id(),
-            StixObjectEnum::Grouping(o) => o.id(),
-            StixObjectEnum::MarkingDefinition(o) => o.id(),
-            StixObjectEnum::LanguageContent(o) => o.id(),
-            StixObjectEnum::ExtensionDefinition(o) => o.id(),
+            StixObjectEnum::Identity(o) => Some(&o.name),
+            StixObjectEnum::Malware(o) => Some(&o.name),
+            StixObjectEnum::ThreatActor(o) => Some(&o.name),
+            StixObjectEnum::AttackPattern(o) => Some(&o.name),
+            StixObjectEnum::Campaign(o) => Some(&o.name),
+            StixObjectEnum::Tool(o) => Some(&o.name),
+            StixObjectEnum::Vulnerability(o) => Some(&o.name),
+            StixObjectEnum::CourseOfAction(o) => Some(&o.name),
+            StixObjectEnum::Infrastructure(o) => Some(&o.name),
+            StixObjectEnum::Report(o) => Some(&o.name),
+            _ => None,
+        }
+    }
+
+    pub fn created(&self) -> chrono::DateTime<chrono::Utc> {
+        match self {
+            StixObjectEnum::Indicator(o) => o.common.created,
+            StixObjectEnum::Malware(o) => o.common.created,
+            StixObjectEnum::ThreatActor(o) => o.common.created,
+            StixObjectEnum::Identity(o) => o.common.created,
+            StixObjectEnum::IntrusionSet(o) => o.common.created,
+            StixObjectEnum::Campaign(o) => o.common.created,
+            StixObjectEnum::Relationship(o) => o.common.created,
+            StixObjectEnum::Custom(v) => v.get("created").and_then(|c| c.as_str()).and_then(|s| chrono::DateTime::parse_from_rfc3339(s).ok()).map(|dt| dt.with_timezone(&chrono::Utc)).unwrap_or_else(chrono::Utc::now),
+            _ => chrono::Utc::now(),
+        }
+    }
+
+    pub fn labels(&self) -> Option<&Vec<String>> {
+        match self {
+            StixObjectEnum::Indicator(o) => o.common.labels.as_ref(),
+            StixObjectEnum::Malware(o) => o.common.labels.as_ref(),
+            StixObjectEnum::ThreatActor(o) => o.common.labels.as_ref(),
+            StixObjectEnum::Identity(o) => o.common.labels.as_ref(),
+            StixObjectEnum::IntrusionSet(o) => o.common.labels.as_ref(),
+            StixObjectEnum::Campaign(o) => o.common.labels.as_ref(),
+            _ => None,
+        }
+    }
+
+    pub fn id(&self) -> String {
+        match self {
+            StixObjectEnum::Identity(o) => o.id().to_string(),
+            StixObjectEnum::Malware(o) => o.id().to_string(),
+            StixObjectEnum::Indicator(o) => o.id().to_string(),
+            StixObjectEnum::ObservedData(o) => o.id().to_string(),
+            StixObjectEnum::MalwareAnalysis(o) => o.id().to_string(),
+            StixObjectEnum::Sighting(o) => o.id().to_string(),
+            StixObjectEnum::Relationship(o) => o.id().to_string(),
+            StixObjectEnum::File(o) => {
+                if let Some(hashes) = &o.hashes {
+                    if let Some(h) = hashes.get("SHA-256").or(hashes.get("MD5")) {
+                        return generate_sco_id("file", h);
+                    }
+                }
+                generate_sco_id("file", o.name.as_deref().unwrap_or("unknown"))
+            },
+            StixObjectEnum::Incident(o) => o.id().to_string(),
+            StixObjectEnum::Location(o) => o.id().to_string(),
+            StixObjectEnum::NetworkTraffic(_) => generate_sco_id("network-traffic", "unknown"),
+            StixObjectEnum::DomainName(o) => generate_sco_id("domain-name", &o.value),
+            StixObjectEnum::IPv4Addr(o) => generate_sco_id("ipv4-addr", &o.value),
+            StixObjectEnum::Url(o) => generate_sco_id("url", &o.value),
+            StixObjectEnum::Process(_) => generate_sco_id("process", "unknown"),
+            StixObjectEnum::Artifact(_) => generate_sco_id("artifact", "unknown"),
+            StixObjectEnum::IPv6Addr(o) => generate_sco_id("ipv6-addr", &o.value),
+            StixObjectEnum::MacAddr(o) => generate_sco_id("mac-addr", &o.value),
+            StixObjectEnum::Software(o) => generate_sco_id("software", o.name.as_deref().unwrap_or("unknown")),
+            StixObjectEnum::UserAccount(o) => generate_sco_id("user-account", o.user_id.as_deref().unwrap_or("unknown")),
+            StixObjectEnum::EmailAddr(o) => generate_sco_id("email-addr", &o.value),
+            StixObjectEnum::EmailMessage(_) => generate_sco_id("email-message", "unknown"),
+            StixObjectEnum::SocketAddr(_) => generate_sco_id("socket-addr", "unknown"),
+            StixObjectEnum::AutonomousSystem(o) => generate_sco_id("autonomous-system", &o.number.map(|n| n.to_string()).unwrap_or_else(|| "unknown".to_string())),
+            StixObjectEnum::SoftwarePackage(_) => generate_sco_id("software-package", "unknown"),
+            StixObjectEnum::Directory(o) => generate_sco_id("directory", o.path.as_deref().unwrap_or("unknown")),
+            StixObjectEnum::Mutex(o) => generate_sco_id("mutex", o.name.as_deref().unwrap_or("unknown")),
+            StixObjectEnum::WindowsRegistryKey(o) => generate_sco_id("windows-registry-key", o.key.as_deref().unwrap_or("unknown")),
+            StixObjectEnum::X509Certificate(_) => generate_sco_id("x509-certificate", "unknown"),
+            StixObjectEnum::AttackPattern(o) => o.id().to_string(),
+            StixObjectEnum::Campaign(o) => o.id().to_string(),
+            StixObjectEnum::ThreatActor(o) => o.id().to_string(),
+            StixObjectEnum::Tool(o) => o.id().to_string(),
+            StixObjectEnum::Vulnerability(o) => o.id().to_string(),
+            StixObjectEnum::CourseOfAction(o) => o.id().to_string(),
+            StixObjectEnum::IntrusionSet(o) => o.id().to_string(),
+            StixObjectEnum::Infrastructure(o) => o.id().to_string(),
+            StixObjectEnum::Report(o) => o.id().to_string(),
+            StixObjectEnum::Note(o) => o.id().to_string(),
+            StixObjectEnum::Opinion(o) => o.id().to_string(),
+            StixObjectEnum::Grouping(o) => o.id().to_string(),
+            StixObjectEnum::MarkingDefinition(o) => o.id().to_string(),
+            StixObjectEnum::LanguageContent(o) => o.id().to_string(),
+            StixObjectEnum::ExtensionDefinition(o) => o.id().to_string(),
+            StixObjectEnum::Custom(v) => v.get("id").and_then(|i| i.as_str()).map(|s| s.to_string()).unwrap_or_else(|| "unknown".to_string()),
         }
     }
 
@@ -187,6 +247,7 @@ impl StixObjectEnum {
             StixObjectEnum::MarkingDefinition(o) => o.type_(),
             StixObjectEnum::LanguageContent(o) => o.type_(),
             StixObjectEnum::ExtensionDefinition(o) => o.type_(),
+            StixObjectEnum::Custom(v) => v.get("type").and_then(|t| t.as_str()).unwrap_or("unknown"),
         }
     }
 }
@@ -240,6 +301,17 @@ impl<'de> Deserialize<'de> for StixObjectEnum {
             "marking-definition" => Ok(StixObjectEnum::MarkingDefinition(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
             "language-content" => Ok(StixObjectEnum::LanguageContent(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
             "extension-definition" => Ok(StixObjectEnum::ExtensionDefinition(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
+            other if other.starts_with("x-") => Ok(StixObjectEnum::Custom(v.clone())),
+            "attack-pattern" => Ok(StixObjectEnum::AttackPattern(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
+            "campaign" => Ok(StixObjectEnum::Campaign(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
+            "threat-actor" => Ok(StixObjectEnum::ThreatActor(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
+            "tool" => Ok(StixObjectEnum::Tool(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
+            "vulnerability" => Ok(StixObjectEnum::Vulnerability(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
+            "course-of-action" => Ok(StixObjectEnum::CourseOfAction(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
+            "intrusion-set" => Ok(StixObjectEnum::IntrusionSet(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
+            "infrastructure" => Ok(StixObjectEnum::Infrastructure(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
+            "report" => Ok(StixObjectEnum::Report(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
+            "note" => Ok(StixObjectEnum::Note(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
             other => Err(serde::de::Error::custom(format!("unknown type: {}", other))),
         }
     }

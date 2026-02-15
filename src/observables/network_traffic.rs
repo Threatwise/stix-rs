@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 /// Network traffic observable (STIX 2.1) - core fields
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
+#[serde(rename_all = "snake_case")]
 pub struct NetworkTraffic {
     pub start: Option<DateTime<Utc>>,
     pub end: Option<DateTime<Utc>>,

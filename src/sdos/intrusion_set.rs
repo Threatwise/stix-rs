@@ -6,7 +6,7 @@ use crate::sdos::BuilderError;
 
 /// Intrusion Set SDO
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
+#[serde(rename_all = "snake_case")]
 pub struct IntrusionSet {
     #[serde(flatten)]
     pub common: CommonProperties,
@@ -92,10 +92,7 @@ mod tests {
 
     #[test]
     fn intrusion_set_serialize() {
-        let iset = IntrusionSet::builder()
-            .name("Fancy Bear")
-            .build()
-            .unwrap();
+        let iset = IntrusionSet::builder().name("Fancy Bear").build().unwrap();
 
         let json = serde_json::to_string(&iset).unwrap();
         assert!(json.contains("\"type\":\"intrusion-set\""));

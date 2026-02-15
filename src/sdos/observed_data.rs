@@ -6,7 +6,7 @@ use crate::sdos::BuilderError;
 
 /// Observed Data SDO
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
+#[serde(rename_all = "snake_case")]
 pub struct ObservedData {
     #[serde(flatten)]
     pub common: CommonProperties,

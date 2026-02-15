@@ -7,7 +7,7 @@ use crate::StixObjectEnum;
 
 /// A minimal STIX Bundle type
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
+#[serde(rename_all = "snake_case")]
 pub struct Bundle {
     pub r#type: String,
     pub id: String,

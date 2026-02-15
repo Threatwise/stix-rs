@@ -259,7 +259,10 @@ mod tests {
     #[test]
     fn test_valid_complex_pattern() {
         assert!(validate_pattern("[file:name = 'malware.exe' AND file:size > 1000]").is_ok());
-        assert!(validate_pattern("[ipv4-addr:value = '10.0.0.1' OR ipv4-addr:value = '10.0.0.2']").is_ok());
+        assert!(
+            validate_pattern("[ipv4-addr:value = '10.0.0.1' OR ipv4-addr:value = '10.0.0.2']")
+                .is_ok()
+        );
     }
 
     #[test]
@@ -306,10 +309,7 @@ mod tests {
             .compare("file", "size", ">", "1000")
             .build();
 
-        assert_eq!(
-            pattern,
-            "[file:hashes.MD5 = 'abc123' AND file:size > 1000]"
-        );
+        assert_eq!(pattern, "[file:hashes.MD5 = 'abc123' AND file:size > 1000]");
         assert!(validate_pattern(&pattern).is_ok());
     }
 

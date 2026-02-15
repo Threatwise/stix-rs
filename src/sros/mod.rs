@@ -6,7 +6,7 @@ use crate::common::StixObject;
 
 /// Sighting Domain Object
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
+#[serde(rename_all = "snake_case")]
 pub struct Sighting {
     #[serde(flatten)]
     pub common: CommonProperties,
@@ -19,18 +19,26 @@ pub struct Sighting {
 }
 
 impl Sighting {
-    pub fn builder() -> crate::SightingBuilder { crate::SightingBuilder::default() }
+    pub fn builder() -> crate::SightingBuilder {
+        crate::SightingBuilder::default()
+    }
 }
 
 impl StixObject for Sighting {
-    fn id(&self) -> &str { &self.common.id }
-    fn type_(&self) -> &str { &self.common.r#type }
-    fn created(&self) -> DateTime<Utc> { self.common.created }
+    fn id(&self) -> &str {
+        &self.common.id
+    }
+    fn type_(&self) -> &str {
+        &self.common.r#type
+    }
+    fn created(&self) -> DateTime<Utc> {
+        self.common.created
+    }
 }
 
 /// Relationship
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
+#[serde(rename_all = "snake_case")]
 pub struct Relationship {
     #[serde(flatten)]
     pub common: CommonProperties,
@@ -40,8 +48,35 @@ pub struct Relationship {
     pub relationship_type: String,
 }
 
-impl Relationship { pub fn new(source_ref: impl Into<String>, target_ref: impl Into<String>, relationship_type: impl Into<String>) -> Self { Self{ common: CommonProperties::new("relationship", None), source_ref: source_ref.into(), target_ref: target_ref.into(), relationship_type: relationship_type.into() } } }
+impl Relationship {
+    pub fn new(
+        source_ref: impl Into<String>,
+        target_ref: impl Into<String>,
+        relationship_type: impl Into<String>,
+    ) -> Self {
+        Self {
+            common: CommonProperties::new("relationship", None),
+            source_ref: source_ref.into(),
+            target_ref: target_ref.into(),
+            relationship_type: relationship_type.into(),
+        }
+    }
+}
 
-impl StixObject for Relationship { fn id(&self) -> &str { &self.common.id } fn type_(&self) -> &str { &self.common.r#type } fn created(&self) -> DateTime<Utc> { self.common.created } }
+impl StixObject for Relationship {
+    fn id(&self) -> &str {
+        &self.common.id
+    }
+    fn type_(&self) -> &str {
+        &self.common.r#type
+    }
+    fn created(&self) -> DateTime<Utc> {
+        self.common.created
+    }
+}
 
-impl From<Relationship> for crate::StixObjectEnum { fn from(r: Relationship) -> Self { crate::StixObjectEnum::Relationship(r) } }
+impl From<Relationship> for crate::StixObjectEnum {
+    fn from(r: Relationship) -> Self {
+        crate::StixObjectEnum::Relationship(r)
+    }
+}

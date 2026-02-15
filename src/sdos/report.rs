@@ -6,7 +6,7 @@ use crate::sdos::BuilderError;
 
 /// Report SDO
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
+#[serde(rename_all = "snake_case")]
 pub struct Report {
     #[serde(flatten)]
     pub common: CommonProperties,
@@ -111,10 +111,7 @@ mod tests {
 
     #[test]
     fn report_serialize() {
-        let report = Report::builder()
-            .name("APT Analysis")
-            .build()
-            .unwrap();
+        let report = Report::builder().name("APT Analysis").build().unwrap();
 
         let json = serde_json::to_string(&report).unwrap();
         assert!(json.contains("\"type\":\"report\""));

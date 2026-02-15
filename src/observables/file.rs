@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 /// File observable (STIX 2.1)
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
+#[serde(rename_all = "snake_case")]
 pub struct File {
     pub hashes: Option<HashMap<String, String>>,
     pub name: Option<String>,

@@ -3,32 +3,34 @@ use serde::{Deserialize, Serialize};
 
 use crate::common::{CommonProperties, StixObject};
 use crate::vocab::{IdentityClass, IndicatorPatternType};
+fn default_pattern_type() -> IndicatorPatternType { IndicatorPatternType::Stix }
+fn default_valid_from() -> DateTime<Utc> { Utc::now() }
 use crate::pattern::validate_pattern;
 
 // Re-export BuilderError from sdos to avoid duplication
 pub use crate::sdos::BuilderError;
 
 /// A kill chain phase (used by Malware and Indicator)
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, )]
+#[serde(rename_all = "snake_case")]
 pub struct KillChainPhase {
-    #[serde(rename = "kill-chain-name")]
+    #[serde(rename = "kill_chain_name")]
     pub name: String,
 
-    #[serde(rename = "phase-name")]
+    #[serde(rename = "phase_name")]
     pub phase_name: String,
 }
 
 /// Identity Domain Object
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, )]
+#[serde(rename_all = "snake_case")]
 pub struct Identity {
     #[serde(flatten)]
     pub common: CommonProperties,
 
     pub name: String,
 
-    pub identity_class: IdentityClass,
+    pub identity_class: Option<IdentityClass>,
 
     pub sectors: Option<Vec<String>>,
 }
@@ -83,7 +85,7 @@ impl IdentityBuilder {
 
     pub fn build(mut self) -> Result<Identity, BuilderError> {
         let name = self.name.ok_or(BuilderError::MissingField("name"))?;
-        let identity_class = self.identity_class.ok_or(BuilderError::MissingField("identity_class"))?;
+        let identity_class = self.identity_class;
 
         let mut common = CommonProperties::new("identity", self.created_by_ref);
         // Attach any custom properties provided by the builder
@@ -121,8 +123,8 @@ impl From<Identity> for crate::StixObjectEnum {
     }
 }
 /// Malware Domain Object
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, )]
+#[serde(rename_all = "snake_case")]
 pub struct Malware {
     #[serde(flatten)]
     pub common: CommonProperties,
@@ -131,8 +133,10 @@ pub struct Malware {
 
     pub description: Option<String>,
 
+        #[serde(default)]
     pub malware_types: Vec<String>,
 
+        #[serde(default)]
     pub is_family: bool,
 
     pub aliases: Option<Vec<String>>,
@@ -252,7 +256,7 @@ impl MalwareBuilder {
     pub fn build(self) -> Result<Malware, BuilderError> {
         let name = self.name.ok_or(BuilderError::MissingField("name"))?;
         let is_family = self.is_family.unwrap_or(false);
-        let malware_types = self.malware_types.ok_or(BuilderError::MissingField("malware_types"))?;
+        let malware_types = self.malware_types.unwrap_or_default();
 
         let common = CommonProperties::new("malware", self.created_by_ref);
 
@@ -290,8 +294,8 @@ impl StixObject for Malware {
 }
 
 /// Indicator Domain Object
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, )]
+#[serde(rename_all = "snake_case")]
 pub struct Indicator {
     #[serde(flatten)]
     pub common: CommonProperties,
@@ -304,10 +308,12 @@ pub struct Indicator {
 
     pub pattern: String,
 
+    #[serde(default = "default_pattern_type")]
     pub pattern_type: IndicatorPatternType,
 
     pub pattern_version: Option<String>,
 
+    #[serde(default = "default_valid_from")]
     pub valid_from: DateTime<Utc>,
 
     pub valid_until: Option<DateTime<Utc>>,
@@ -458,8 +464,8 @@ impl From<Malware> for crate::StixObjectEnum {
 }
 
 /// Sighting Domain Object
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, )]
+#[serde(rename_all = "snake_case")]
 pub struct Sighting {
     #[serde(flatten)]
     pub common: CommonProperties,
@@ -546,6 +552,8 @@ impl From<Sighting> for crate::StixObjectEnum {
 mod tests {
     use super::*;
     use crate::vocab::{IdentityClass, IndicatorPatternType};
+fn default_pattern_type() -> IndicatorPatternType { IndicatorPatternType::Stix }
+fn default_valid_from() -> DateTime<Utc> { Utc::now() }
     use serde_json::Value;
 
     #[test]

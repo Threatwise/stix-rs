@@ -366,56 +366,125 @@ mod tests {
 
     #[test]
     fn hash_algorithm_serializes() {
-        assert_eq!(serde_json::to_string(&HashAlgorithm::Md5).unwrap(), "\"md5\"");
-        assert_eq!(serde_json::to_string(&HashAlgorithm::Sha1).unwrap(), "\"sha-1\"");
-        assert_eq!(serde_json::to_string(&HashAlgorithm::Sha256).unwrap(), "\"sha-256\"");
-        assert_eq!(serde_json::to_string(&HashAlgorithm::Sha512).unwrap(), "\"sha-512\"");
+        assert_eq!(
+            serde_json::to_string(&HashAlgorithm::Md5).unwrap(),
+            "\"md5\""
+        );
+        assert_eq!(
+            serde_json::to_string(&HashAlgorithm::Sha1).unwrap(),
+            "\"sha-1\""
+        );
+        assert_eq!(
+            serde_json::to_string(&HashAlgorithm::Sha256).unwrap(),
+            "\"sha-256\""
+        );
+        assert_eq!(
+            serde_json::to_string(&HashAlgorithm::Sha512).unwrap(),
+            "\"sha-512\""
+        );
     }
 
     #[test]
     fn relationship_type_serializes() {
-        assert_eq!(serde_json::to_string(&RelationshipType::Targets).unwrap(), "\"targets\"");
-        assert_eq!(serde_json::to_string(&RelationshipType::LocatedAt).unwrap(), "\"located-at\"");
-        assert_eq!(serde_json::to_string(&RelationshipType::AttributedTo).unwrap(), "\"attributed-to\"");
+        assert_eq!(
+            serde_json::to_string(&RelationshipType::Targets).unwrap(),
+            "\"targets\""
+        );
+        assert_eq!(
+            serde_json::to_string(&RelationshipType::LocatedAt).unwrap(),
+            "\"located-at\""
+        );
+        assert_eq!(
+            serde_json::to_string(&RelationshipType::AttributedTo).unwrap(),
+            "\"attributed-to\""
+        );
     }
 
     #[test]
     fn implementation_language_serializes() {
-        assert_eq!(serde_json::to_string(&ImplementationLanguage::Python).unwrap(), "\"python\"");
-        assert_eq!(serde_json::to_string(&ImplementationLanguage::Cpp).unwrap(), "\"c++\"");
-        assert_eq!(serde_json::to_string(&ImplementationLanguage::Csharp).unwrap(), "\"c#\"");
-        assert_eq!(serde_json::to_string(&ImplementationLanguage::Javascript).unwrap(), "\"javascript\"");
+        assert_eq!(
+            serde_json::to_string(&ImplementationLanguage::Python).unwrap(),
+            "\"python\""
+        );
+        assert_eq!(
+            serde_json::to_string(&ImplementationLanguage::Cpp).unwrap(),
+            "\"c++\""
+        );
+        assert_eq!(
+            serde_json::to_string(&ImplementationLanguage::Csharp).unwrap(),
+            "\"c#\""
+        );
+        assert_eq!(
+            serde_json::to_string(&ImplementationLanguage::Javascript).unwrap(),
+            "\"javascript\""
+        );
     }
 
     #[test]
     fn indicator_type_serializes() {
-        assert_eq!(serde_json::to_string(&IndicatorType::MaliciousActivity).unwrap(), "\"malicious-activity\"");
-        assert_eq!(serde_json::to_string(&IndicatorType::AnomalousActivity).unwrap(), "\"anomalous-activity\"");
-        assert_eq!(serde_json::to_string(&IndicatorType::Unknown).unwrap(), "\"unknown\"");
+        assert_eq!(
+            serde_json::to_string(&IndicatorType::MaliciousActivity).unwrap(),
+            "\"malicious-activity\""
+        );
+        assert_eq!(
+            serde_json::to_string(&IndicatorType::AnomalousActivity).unwrap(),
+            "\"anomalous-activity\""
+        );
+        assert_eq!(
+            serde_json::to_string(&IndicatorType::Unknown).unwrap(),
+            "\"unknown\""
+        );
     }
 
     #[test]
     fn malware_type_serializes() {
-        assert_eq!(serde_json::to_string(&MalwareType::Ransomware).unwrap(), "\"ransomware\"");
-        assert_eq!(serde_json::to_string(&MalwareType::RemoteAccessTrojan).unwrap(), "\"remote-access-trojan\"");
-        assert_eq!(serde_json::to_string(&MalwareType::Backdoor).unwrap(), "\"backdoor\"");
+        assert_eq!(
+            serde_json::to_string(&MalwareType::Ransomware).unwrap(),
+            "\"ransomware\""
+        );
+        assert_eq!(
+            serde_json::to_string(&MalwareType::RemoteAccessTrojan).unwrap(),
+            "\"remote-access-trojan\""
+        );
+        assert_eq!(
+            serde_json::to_string(&MalwareType::Backdoor).unwrap(),
+            "\"backdoor\""
+        );
     }
 
     #[test]
     fn threat_actor_type_serializes() {
-        assert_eq!(serde_json::to_string(&ThreatActorType::NationState).unwrap(), "\"nation-state\"");
-        assert_eq!(serde_json::to_string(&ThreatActorType::Criminal).unwrap(), "\"criminal\"");
+        assert_eq!(
+            serde_json::to_string(&ThreatActorType::NationState).unwrap(),
+            "\"nation-state\""
+        );
+        assert_eq!(
+            serde_json::to_string(&ThreatActorType::Criminal).unwrap(),
+            "\"criminal\""
+        );
     }
 
     #[test]
     fn tool_type_serializes() {
-        assert_eq!(serde_json::to_string(&ToolType::RemoteAccess).unwrap(), "\"remote-access\"");
-        assert_eq!(serde_json::to_string(&ToolType::Exploitation).unwrap(), "\"exploitation\"");
+        assert_eq!(
+            serde_json::to_string(&ToolType::RemoteAccess).unwrap(),
+            "\"remote-access\""
+        );
+        assert_eq!(
+            serde_json::to_string(&ToolType::Exploitation).unwrap(),
+            "\"exploitation\""
+        );
     }
 
     #[test]
     fn infrastructure_type_serializes() {
-        assert_eq!(serde_json::to_string(&InfrastructureType::CommandAndControl).unwrap(), "\"command-and-control\"");
-        assert_eq!(serde_json::to_string(&InfrastructureType::Botnet).unwrap(), "\"botnet\"");
+        assert_eq!(
+            serde_json::to_string(&InfrastructureType::CommandAndControl).unwrap(),
+            "\"command-and-control\""
+        );
+        assert_eq!(
+            serde_json::to_string(&InfrastructureType::Botnet).unwrap(),
+            "\"botnet\""
+        );
     }
 }

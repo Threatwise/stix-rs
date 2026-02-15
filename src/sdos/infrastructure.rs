@@ -6,7 +6,7 @@ use crate::sdos::BuilderError;
 
 /// Infrastructure SDO
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
+#[serde(rename_all = "snake_case")]
 pub struct Infrastructure {
     #[serde(flatten)]
     pub common: CommonProperties,

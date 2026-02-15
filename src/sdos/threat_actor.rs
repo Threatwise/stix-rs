@@ -6,7 +6,7 @@ use crate::sdos::BuilderError;
 
 /// Threat Actor SDO
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
+#[serde(rename_all = "snake_case")]
 pub struct ThreatActor {
     #[serde(flatten)]
     pub common: CommonProperties,
@@ -101,10 +101,7 @@ mod tests {
 
     #[test]
     fn threat_actor_serialize() {
-        let ta = ThreatActor::builder()
-            .name("APT28")
-            .build()
-            .unwrap();
+        let ta = ThreatActor::builder().name("APT28").build().unwrap();
 
         let json = serde_json::to_string(&ta).unwrap();
         assert!(json.contains("\"type\":\"threat-actor\""));

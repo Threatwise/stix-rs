@@ -4,16 +4,19 @@ use serde::{Deserialize, Serialize};
 use crate::common::{CommonProperties, StixObject};
 
 /// Generic Relationship Object
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, )]
+#[serde(rename_all = "snake_case")]
 pub struct Relationship {
     #[serde(flatten)]
     pub common: CommonProperties,
 
+        #[serde(default)]
     pub source_ref: String,
 
+        #[serde(default)]
     pub target_ref: String,
 
+        #[serde(default)]
     pub relationship_type: String,
 }
 

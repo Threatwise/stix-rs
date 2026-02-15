@@ -5,7 +5,7 @@ use crate::common::{CommonProperties, StixObject};
 
 /// Opinion SDO
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
+#[serde(rename_all = "snake_case")]
 pub struct Opinion {
     #[serde(flatten)]
     pub common: CommonProperties,
@@ -16,29 +16,78 @@ pub struct Opinion {
     pub opinion: String,
 }
 
-impl Opinion { pub fn builder() -> OpinionBuilder { OpinionBuilder::default() } }
-
-#[derive(Debug, Default)]
-pub struct OpinionBuilder { explanation: Option<String>, authors: Option<Vec<String>>, object_refs: Option<Vec<String>>, opinion: Option<String>, created_by_ref: Option<String> }
-
-impl OpinionBuilder {
-    pub fn explanation(mut self, e: impl Into<String>) -> Self { self.explanation = Some(e.into()); self }
-    pub fn authors(mut self, a: Vec<String>) -> Self { self.authors = Some(a); self }
-    pub fn object_refs(mut self, o: Vec<String>) -> Self { self.object_refs = Some(o); self }
-    pub fn opinion(mut self, o: impl Into<String>) -> Self { self.opinion = Some(o.into()); self }
-    pub fn created_by_ref(mut self, r: impl Into<String>) -> Self { self.created_by_ref = Some(r.into()); self }
-
-    pub fn build(self) -> Result<Opinion, super::BuilderError> {
-        let object_refs = self.object_refs.ok_or(super::BuilderError::MissingField("object_refs"))?;
-        let opinion = self.opinion.ok_or(super::BuilderError::MissingField("opinion"))?;
-        let common = CommonProperties::new("opinion", self.created_by_ref);
-        Ok(Opinion{ common, explanation: self.explanation, authors: self.authors, object_refs, opinion })
+impl Opinion {
+    pub fn builder() -> OpinionBuilder {
+        OpinionBuilder::default()
     }
 }
 
-impl StixObject for Opinion { fn id(&self) -> &str { &self.common.id } fn type_(&self) -> &str { &self.common.r#type } fn created(&self) -> DateTime<Utc> { self.common.created } }
+#[derive(Debug, Default)]
+pub struct OpinionBuilder {
+    explanation: Option<String>,
+    authors: Option<Vec<String>>,
+    object_refs: Option<Vec<String>>,
+    opinion: Option<String>,
+    created_by_ref: Option<String>,
+}
 
-impl From<Opinion> for crate::StixObjectEnum { fn from(o: Opinion) -> Self { crate::StixObjectEnum::Opinion(o) } }
+impl OpinionBuilder {
+    pub fn explanation(mut self, e: impl Into<String>) -> Self {
+        self.explanation = Some(e.into());
+        self
+    }
+    pub fn authors(mut self, a: Vec<String>) -> Self {
+        self.authors = Some(a);
+        self
+    }
+    pub fn object_refs(mut self, o: Vec<String>) -> Self {
+        self.object_refs = Some(o);
+        self
+    }
+    pub fn opinion(mut self, o: impl Into<String>) -> Self {
+        self.opinion = Some(o.into());
+        self
+    }
+    pub fn created_by_ref(mut self, r: impl Into<String>) -> Self {
+        self.created_by_ref = Some(r.into());
+        self
+    }
+
+    pub fn build(self) -> Result<Opinion, super::BuilderError> {
+        let object_refs = self
+            .object_refs
+            .ok_or(super::BuilderError::MissingField("object_refs"))?;
+        let opinion = self
+            .opinion
+            .ok_or(super::BuilderError::MissingField("opinion"))?;
+        let common = CommonProperties::new("opinion", self.created_by_ref);
+        Ok(Opinion {
+            common,
+            explanation: self.explanation,
+            authors: self.authors,
+            object_refs,
+            opinion,
+        })
+    }
+}
+
+impl StixObject for Opinion {
+    fn id(&self) -> &str {
+        &self.common.id
+    }
+    fn type_(&self) -> &str {
+        &self.common.r#type
+    }
+    fn created(&self) -> DateTime<Utc> {
+        self.common.created
+    }
+}
+
+impl From<Opinion> for crate::StixObjectEnum {
+    fn from(o: Opinion) -> Self {
+        crate::StixObjectEnum::Opinion(o)
+    }
+}
 
 #[cfg(test)]
 mod tests {

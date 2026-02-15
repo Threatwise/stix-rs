@@ -6,7 +6,7 @@ use crate::sdos::BuilderError;
 
 /// Tool SDO
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
+#[serde(rename_all = "snake_case")]
 pub struct Tool {
     #[serde(flatten)]
     pub common: CommonProperties,
@@ -101,10 +101,7 @@ mod tests {
 
     #[test]
     fn tool_serialize() {
-        let tool = Tool::builder()
-            .name("Cobalt Strike")
-            .build()
-            .unwrap();
+        let tool = Tool::builder().name("Cobalt Strike").build().unwrap();
 
         let json = serde_json::to_string(&tool).unwrap();
         assert!(json.contains("\"type\":\"tool\""));
