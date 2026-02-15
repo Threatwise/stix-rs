@@ -1,3 +1,4 @@
 .claude/
 .github/copilot-instructions.md
+.trunk/
 target/
