@@ -59,8 +59,14 @@ fn test_deserialize_indicator_with_valid_from() {
 
     let indicator: stix_rs::objects::Indicator = serde_json::from_str(stix_json).unwrap();
 
-    assert_eq!(indicator.name.as_deref(), Some("Malicious site hosting downloader"));
-    assert_eq!(indicator.pattern_type, stix_rs::vocab::IndicatorPatternType::Stix);
+    assert_eq!(
+        indicator.name.as_deref(),
+        Some("Malicious site hosting downloader")
+    );
+    assert_eq!(
+        indicator.pattern_type,
+        stix_rs::vocab::IndicatorPatternType::Stix
+    );
     assert!(indicator.valid_from.to_rfc3339().starts_with("2016-01-01"));
 }
 

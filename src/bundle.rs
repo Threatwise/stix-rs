@@ -251,8 +251,8 @@ impl Bundle {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Identity, IdentityClass, Malware, StixObjectEnum};
     use crate::common::StixObject;
+    use crate::{Identity, IdentityClass, Malware, StixObjectEnum};
 
     #[test]
     fn bundle_serializes_objects() {

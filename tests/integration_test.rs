@@ -1,7 +1,7 @@
 use chrono::Utc;
+use stix_rs::bundle::Bundle;
 use stix_rs::objects::{Identity, Indicator};
 use stix_rs::vocab::{IdentityClass, IndicatorPatternType};
-use stix_rs::bundle::Bundle;
 
 #[test]
 fn test_complex_workflow() {

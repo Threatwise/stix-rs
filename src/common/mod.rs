@@ -3,7 +3,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 use uuid::Uuid;
-fn default_now() -> DateTime<Utc> { Utc::now() }
+fn default_now() -> DateTime<Utc> {
+    Utc::now()
+}
 
 /// Trait implemented by STIX objects for basic accessors
 pub trait StixObject {
@@ -13,7 +15,7 @@ pub trait StixObject {
 }
 
 /// Granular Marking - for marking specific portions of objects
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, )]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub struct GranularMarking {
     pub marking_ref: Option<String>,
@@ -22,7 +24,7 @@ pub struct GranularMarking {
 }
 
 /// Common STIX properties shared by STIX domain objects
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, )]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub struct CommonProperties {
     #[serde(rename = "type")]
@@ -204,13 +206,15 @@ pub fn extract_type_from_id(id: &str) -> Option<&str> {
 /// ));
 /// ```
 pub fn is_valid_ref_for_type(id: &str, expected_type: &str) -> bool {
-    extract_type_from_id(id).map(|t| t == expected_type).unwrap_or(false)
+    extract_type_from_id(id)
+        .map(|t| t == expected_type)
+        .unwrap_or(false)
 }
 
 // Common objects: ExternalReference, MarkingDefinition, ExtensionDefinition, LanguageContent
 
 /// External Reference - Links to external resources (CVEs, ATT&CK, etc.)
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, )]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub struct ExternalReference {
     pub source_name: String,
@@ -284,7 +288,7 @@ impl ExternalReferenceBuilder {
 }
 
 /// Marking Definition - For data markings like TLP (Traffic Light Protocol)
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, )]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub struct MarkingDefinition {
     #[serde(flatten)]
@@ -380,7 +384,7 @@ impl StixObject for MarkingDefinition {
 }
 
 /// Language Content - For internationalization support
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, )]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub struct LanguageContent {
     #[serde(flatten)]
@@ -454,7 +458,7 @@ impl StixObject for LanguageContent {
 }
 
 /// Extension Definition - For custom STIX extensions
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, )]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub struct ExtensionDefinition {
     #[serde(flatten)]

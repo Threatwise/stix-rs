@@ -13,15 +13,16 @@ pub const MEDIA_TYPE_STIX_GENERIC: &str = "application/stix+json";
 /// Generic TAXII JSON media type (without version)
 pub const MEDIA_TYPE_TAXII_GENERIC: &str = "application/taxii+json";
 
+pub mod bundle;
 pub mod common;
+pub mod objects;
+pub mod observables;
+pub mod pattern;
 pub mod sdos;
 pub mod sros;
-pub mod observables;
 pub mod vocab;
-pub mod bundle;
-pub mod objects;
-pub mod pattern;
 
+pub use bundle::*;
 pub use common::{
     CommonProperties, ExtensionDefinition, ExternalReference, GranularMarking, LanguageContent,
     MarkingDefinition, StixObject, extract_type_from_id, generate_stix_id, is_valid_ref_for_type,
@@ -29,11 +30,10 @@ pub use common::{
 };
 pub use objects::*;
 pub use observables::*;
+pub use pattern::{PatternBuilder, PatternError, validate_pattern};
 pub use sdos::*;
 pub use sros::Relationship;
 pub use vocab::*;
-pub use bundle::*;
-pub use pattern::{validate_pattern, PatternBuilder, PatternError};
 
 use uuid::Uuid;
 const SCO_NAMESPACE: Uuid = Uuid::from_u128(0x00abedb4_aa42_466c_9c01_def7442f5a74);
@@ -42,8 +42,8 @@ fn generate_sco_id(object_type: &str, data: &str) -> String {
     let id_part = Uuid::new_v5(&SCO_NAMESPACE, data.as_bytes());
     format!("{}--{}", object_type, id_part)
 }
-use serde::{Deserialize, Serialize};
 use serde::de::Deserializer;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 /// A wrapper enum for STIX objects. Deserializes based on the `type` field.
@@ -126,7 +126,12 @@ impl StixObjectEnum {
             StixObjectEnum::IntrusionSet(o) => o.common.created,
             StixObjectEnum::Campaign(o) => o.common.created,
             StixObjectEnum::Relationship(o) => o.common.created,
-            StixObjectEnum::Custom(v) => v.get("created").and_then(|c| c.as_str()).and_then(|s| chrono::DateTime::parse_from_rfc3339(s).ok()).map(|dt| dt.with_timezone(&chrono::Utc)).unwrap_or_else(chrono::Utc::now),
+            StixObjectEnum::Custom(v) => v
+                .get("created")
+                .and_then(|c| c.as_str())
+                .and_then(|s| chrono::DateTime::parse_from_rfc3339(s).ok())
+                .map(|dt| dt.with_timezone(&chrono::Utc))
+                .unwrap_or_else(chrono::Utc::now),
             _ => chrono::Utc::now(),
         }
     }
@@ -159,7 +164,7 @@ impl StixObjectEnum {
                     }
                 }
                 generate_sco_id("file", o.name.as_deref().unwrap_or("unknown"))
-            },
+            }
             StixObjectEnum::Incident(o) => o.id().to_string(),
             StixObjectEnum::Location(o) => o.id().to_string(),
             StixObjectEnum::NetworkTraffic(_) => generate_sco_id("network-traffic", "unknown"),
@@ -170,16 +175,32 @@ impl StixObjectEnum {
             StixObjectEnum::Artifact(_) => generate_sco_id("artifact", "unknown"),
             StixObjectEnum::IPv6Addr(o) => generate_sco_id("ipv6-addr", &o.value),
             StixObjectEnum::MacAddr(o) => generate_sco_id("mac-addr", &o.value),
-            StixObjectEnum::Software(o) => generate_sco_id("software", o.name.as_deref().unwrap_or("unknown")),
-            StixObjectEnum::UserAccount(o) => generate_sco_id("user-account", o.user_id.as_deref().unwrap_or("unknown")),
+            StixObjectEnum::Software(o) => {
+                generate_sco_id("software", o.name.as_deref().unwrap_or("unknown"))
+            }
+            StixObjectEnum::UserAccount(o) => {
+                generate_sco_id("user-account", o.user_id.as_deref().unwrap_or("unknown"))
+            }
             StixObjectEnum::EmailAddr(o) => generate_sco_id("email-addr", &o.value),
             StixObjectEnum::EmailMessage(_) => generate_sco_id("email-message", "unknown"),
             StixObjectEnum::SocketAddr(_) => generate_sco_id("socket-addr", "unknown"),
-            StixObjectEnum::AutonomousSystem(o) => generate_sco_id("autonomous-system", &o.number.map(|n| n.to_string()).unwrap_or_else(|| "unknown".to_string())),
+            StixObjectEnum::AutonomousSystem(o) => generate_sco_id(
+                "autonomous-system",
+                &o.number
+                    .map(|n| n.to_string())
+                    .unwrap_or_else(|| "unknown".to_string()),
+            ),
             StixObjectEnum::SoftwarePackage(_) => generate_sco_id("software-package", "unknown"),
-            StixObjectEnum::Directory(o) => generate_sco_id("directory", o.path.as_deref().unwrap_or("unknown")),
-            StixObjectEnum::Mutex(o) => generate_sco_id("mutex", o.name.as_deref().unwrap_or("unknown")),
-            StixObjectEnum::WindowsRegistryKey(o) => generate_sco_id("windows-registry-key", o.key.as_deref().unwrap_or("unknown")),
+            StixObjectEnum::Directory(o) => {
+                generate_sco_id("directory", o.path.as_deref().unwrap_or("unknown"))
+            }
+            StixObjectEnum::Mutex(o) => {
+                generate_sco_id("mutex", o.name.as_deref().unwrap_or("unknown"))
+            }
+            StixObjectEnum::WindowsRegistryKey(o) => generate_sco_id(
+                "windows-registry-key",
+                o.key.as_deref().unwrap_or("unknown"),
+            ),
             StixObjectEnum::X509Certificate(_) => generate_sco_id("x509-certificate", "unknown"),
             StixObjectEnum::AttackPattern(o) => o.id().to_string(),
             StixObjectEnum::Campaign(o) => o.id().to_string(),
@@ -196,7 +217,11 @@ impl StixObjectEnum {
             StixObjectEnum::MarkingDefinition(o) => o.id().to_string(),
             StixObjectEnum::LanguageContent(o) => o.id().to_string(),
             StixObjectEnum::ExtensionDefinition(o) => o.id().to_string(),
-            StixObjectEnum::Custom(v) => v.get("id").and_then(|i| i.as_str()).map(|s| s.to_string()).unwrap_or_else(|| "unknown".to_string()),
+            StixObjectEnum::Custom(v) => v
+                .get("id")
+                .and_then(|i| i.as_str())
+                .map(|s| s.to_string())
+                .unwrap_or_else(|| "unknown".to_string()),
         }
     }
 
@@ -247,7 +272,9 @@ impl StixObjectEnum {
             StixObjectEnum::MarkingDefinition(o) => o.type_(),
             StixObjectEnum::LanguageContent(o) => o.type_(),
             StixObjectEnum::ExtensionDefinition(o) => o.type_(),
-            StixObjectEnum::Custom(v) => v.get("type").and_then(|t| t.as_str()).unwrap_or("unknown"),
+            StixObjectEnum::Custom(v) => {
+                v.get("type").and_then(|t| t.as_str()).unwrap_or("unknown")
+            }
         }
     }
 }
@@ -267,53 +294,140 @@ impl<'de> Deserialize<'de> for StixObjectEnum {
             .and_then(Value::as_str)
             .ok_or_else(|| serde::de::Error::custom("missing or invalid `type` field"))?;
         match t {
-            "identity" => Ok(StixObjectEnum::Identity(serde_json::from_value(v).map_err(serde::de::Error::custom)?)),
-            "malware" => Ok(StixObjectEnum::Malware(serde_json::from_value(v).map_err(serde::de::Error::custom)?)),
-            "indicator" => Ok(StixObjectEnum::Indicator(serde_json::from_value(v).map_err(serde::de::Error::custom)?)),
-            "observed-data" => Ok(StixObjectEnum::ObservedData(serde_json::from_value(v).map_err(serde::de::Error::custom)?)),
-            "file" => Ok(StixObjectEnum::File(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "network-traffic" => Ok(StixObjectEnum::NetworkTraffic(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "domain-name" => Ok(StixObjectEnum::DomainName(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "ipv4-addr" => Ok(StixObjectEnum::IPv4Addr(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "ipv6-addr" => Ok(StixObjectEnum::IPv6Addr(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "url" => Ok(StixObjectEnum::Url(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "process" => Ok(StixObjectEnum::Process(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "artifact" => Ok(StixObjectEnum::Artifact(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "mac-addr" => Ok(StixObjectEnum::MacAddr(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "software" => Ok(StixObjectEnum::Software(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "user-account" => Ok(StixObjectEnum::UserAccount(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "email-addr" => Ok(StixObjectEnum::EmailAddr(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "email-message" => Ok(StixObjectEnum::EmailMessage(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "socket-addr" => Ok(StixObjectEnum::SocketAddr(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "autonomous-system" => Ok(StixObjectEnum::AutonomousSystem(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "software-package" => Ok(StixObjectEnum::SoftwarePackage(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "directory" => Ok(StixObjectEnum::Directory(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "mutex" => Ok(StixObjectEnum::Mutex(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "windows-registry-key" => Ok(StixObjectEnum::WindowsRegistryKey(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "x509-certificate" => Ok(StixObjectEnum::X509Certificate(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "malware-analysis" => Ok(StixObjectEnum::MalwareAnalysis(serde_json::from_value(v).map_err(serde::de::Error::custom)?)),
-            "sighting" => Ok(StixObjectEnum::Sighting(serde_json::from_value(v).map_err(serde::de::Error::custom)?)),
-            "grouping" => Ok(StixObjectEnum::Grouping(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "incident" => Ok(StixObjectEnum::Incident(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "location" => Ok(StixObjectEnum::Location(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "opinion" => Ok(StixObjectEnum::Opinion(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "relationship" => Ok(StixObjectEnum::Relationship(serde_json::from_value(v).map_err(serde::de::Error::custom)?)),
-            "marking-definition" => Ok(StixObjectEnum::MarkingDefinition(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "language-content" => Ok(StixObjectEnum::LanguageContent(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "extension-definition" => Ok(StixObjectEnum::ExtensionDefinition(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
+            "identity" => Ok(StixObjectEnum::Identity(
+                serde_json::from_value(v).map_err(serde::de::Error::custom)?,
+            )),
+            "malware" => Ok(StixObjectEnum::Malware(
+                serde_json::from_value(v).map_err(serde::de::Error::custom)?,
+            )),
+            "indicator" => Ok(StixObjectEnum::Indicator(
+                serde_json::from_value(v).map_err(serde::de::Error::custom)?,
+            )),
+            "observed-data" => Ok(StixObjectEnum::ObservedData(
+                serde_json::from_value(v).map_err(serde::de::Error::custom)?,
+            )),
+            "file" => Ok(StixObjectEnum::File(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "network-traffic" => Ok(StixObjectEnum::NetworkTraffic(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "domain-name" => Ok(StixObjectEnum::DomainName(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "ipv4-addr" => Ok(StixObjectEnum::IPv4Addr(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "ipv6-addr" => Ok(StixObjectEnum::IPv6Addr(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "url" => Ok(StixObjectEnum::Url(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "process" => Ok(StixObjectEnum::Process(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "artifact" => Ok(StixObjectEnum::Artifact(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "mac-addr" => Ok(StixObjectEnum::MacAddr(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "software" => Ok(StixObjectEnum::Software(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "user-account" => Ok(StixObjectEnum::UserAccount(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "email-addr" => Ok(StixObjectEnum::EmailAddr(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "email-message" => Ok(StixObjectEnum::EmailMessage(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "socket-addr" => Ok(StixObjectEnum::SocketAddr(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "autonomous-system" => Ok(StixObjectEnum::AutonomousSystem(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "software-package" => Ok(StixObjectEnum::SoftwarePackage(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "directory" => Ok(StixObjectEnum::Directory(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "mutex" => Ok(StixObjectEnum::Mutex(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "windows-registry-key" => Ok(StixObjectEnum::WindowsRegistryKey(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "x509-certificate" => Ok(StixObjectEnum::X509Certificate(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "malware-analysis" => Ok(StixObjectEnum::MalwareAnalysis(
+                serde_json::from_value(v).map_err(serde::de::Error::custom)?,
+            )),
+            "sighting" => Ok(StixObjectEnum::Sighting(
+                serde_json::from_value(v).map_err(serde::de::Error::custom)?,
+            )),
+            "grouping" => Ok(StixObjectEnum::Grouping(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "incident" => Ok(StixObjectEnum::Incident(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "location" => Ok(StixObjectEnum::Location(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "opinion" => Ok(StixObjectEnum::Opinion(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "relationship" => Ok(StixObjectEnum::Relationship(
+                serde_json::from_value(v).map_err(serde::de::Error::custom)?,
+            )),
+            "marking-definition" => Ok(StixObjectEnum::MarkingDefinition(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "language-content" => Ok(StixObjectEnum::LanguageContent(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "extension-definition" => Ok(StixObjectEnum::ExtensionDefinition(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
             other if other.starts_with("x-") => Ok(StixObjectEnum::Custom(v.clone())),
-            "attack-pattern" => Ok(StixObjectEnum::AttackPattern(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "campaign" => Ok(StixObjectEnum::Campaign(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "threat-actor" => Ok(StixObjectEnum::ThreatActor(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "tool" => Ok(StixObjectEnum::Tool(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "vulnerability" => Ok(StixObjectEnum::Vulnerability(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "course-of-action" => Ok(StixObjectEnum::CourseOfAction(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "intrusion-set" => Ok(StixObjectEnum::IntrusionSet(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "infrastructure" => Ok(StixObjectEnum::Infrastructure(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "report" => Ok(StixObjectEnum::Report(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
-            "note" => Ok(StixObjectEnum::Note(serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?)),
+            "attack-pattern" => Ok(StixObjectEnum::AttackPattern(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "campaign" => Ok(StixObjectEnum::Campaign(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "threat-actor" => Ok(StixObjectEnum::ThreatActor(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "tool" => Ok(StixObjectEnum::Tool(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "vulnerability" => Ok(StixObjectEnum::Vulnerability(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "course-of-action" => Ok(StixObjectEnum::CourseOfAction(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "intrusion-set" => Ok(StixObjectEnum::IntrusionSet(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "infrastructure" => Ok(StixObjectEnum::Infrastructure(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "report" => Ok(StixObjectEnum::Report(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
+            "note" => Ok(StixObjectEnum::Note(
+                serde_json::from_value(v.clone()).map_err(serde::de::Error::custom)?,
+            )),
             other => Err(serde::de::Error::custom(format!("unknown type: {}", other))),
         }
     }
 }
-

@@ -1,6 +1,6 @@
 use chrono::Utc;
 use stix_rs::objects::Indicator;
-use stix_rs::pattern::{validate_pattern, PatternBuilder};
+use stix_rs::pattern::{PatternBuilder, validate_pattern};
 use stix_rs::vocab::IndicatorPatternType;
 
 #[test]

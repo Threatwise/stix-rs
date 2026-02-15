@@ -1,6 +1,6 @@
 use serde_json::Value;
 
-use stix_rs::{Identity, Sighting, StixObjectEnum, IdentityClass};
+use stix_rs::{Identity, IdentityClass, Sighting, StixObjectEnum};
 
 #[test]
 fn test_identity_serialization() {
@@ -13,7 +13,11 @@ fn test_identity_serialization() {
     let v: Value = serde_json::from_str(&s).unwrap();
     assert_eq!(v.get("type").and_then(Value::as_str).unwrap(), "identity");
     let id_field = v.get("id").and_then(Value::as_str).unwrap();
-    assert!(id_field.starts_with("identity--"), "id does not start with identity--: {}", id_field);
+    assert!(
+        id_field.starts_with("identity--"),
+        "id does not start with identity--: {}",
+        id_field
+    );
 }
 
 #[test]
@@ -34,8 +38,14 @@ fn test_sighting_link() {
 
     let v: Value = serde_json::from_str(&j).unwrap();
 
-    assert_eq!(v.get("sighting_of_ref").and_then(Value::as_str).unwrap(), fake_malware);
-    let where_refs = v.get("where_sighted_refs").and_then(Value::as_array).unwrap();
+    assert_eq!(
+        v.get("sighting_of_ref").and_then(Value::as_str).unwrap(),
+        fake_malware
+    );
+    let where_refs = v
+        .get("where_sighted_refs")
+        .and_then(Value::as_array)
+        .unwrap();
     assert_eq!(where_refs.len(), 1);
     assert_eq!(where_refs[0].as_str().unwrap(), fake_sensor);
 }
@@ -54,7 +64,8 @@ fn test_deserialization() {
     }
     "#;
 
-    let obj: StixObjectEnum = serde_json::from_str(raw).expect("failed to deserialize StixObjectEnum");
+    let obj: StixObjectEnum =
+        serde_json::from_str(raw).expect("failed to deserialize StixObjectEnum");
 
     match obj {
         StixObjectEnum::Malware(m) => {

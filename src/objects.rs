@@ -3,15 +3,19 @@ use serde::{Deserialize, Serialize};
 
 use crate::common::{CommonProperties, StixObject};
 use crate::vocab::{IdentityClass, IndicatorPatternType};
-fn default_pattern_type() -> IndicatorPatternType { IndicatorPatternType::Stix }
-fn default_valid_from() -> DateTime<Utc> { Utc::now() }
+fn default_pattern_type() -> IndicatorPatternType {
+    IndicatorPatternType::Stix
+}
+fn default_valid_from() -> DateTime<Utc> {
+    Utc::now()
+}
 use crate::pattern::validate_pattern;
 
 // Re-export BuilderError from sdos to avoid duplication
 pub use crate::sdos::BuilderError;
 
 /// A kill chain phase (used by Malware and Indicator)
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, )]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub struct KillChainPhase {
     #[serde(rename = "kill_chain_name")]
@@ -22,7 +26,7 @@ pub struct KillChainPhase {
 }
 
 /// Identity Domain Object
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, )]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub struct Identity {
     #[serde(flatten)]
@@ -90,7 +94,9 @@ impl IdentityBuilder {
         let mut common = CommonProperties::new("identity", self.created_by_ref);
         // Attach any custom properties provided by the builder
         if !self.custom_properties.is_empty() {
-            common.custom_properties.extend(self.custom_properties.drain());
+            common
+                .custom_properties
+                .extend(self.custom_properties.drain());
         }
 
         Ok(Identity {
@@ -123,7 +129,7 @@ impl From<Identity> for crate::StixObjectEnum {
     }
 }
 /// Malware Domain Object
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, )]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub struct Malware {
     #[serde(flatten)]
@@ -133,10 +139,10 @@ pub struct Malware {
 
     pub description: Option<String>,
 
-        #[serde(default)]
+    #[serde(default)]
     pub malware_types: Vec<String>,
 
-        #[serde(default)]
+    #[serde(default)]
     pub is_family: bool,
 
     pub aliases: Option<Vec<String>>,
@@ -294,7 +300,7 @@ impl StixObject for Malware {
 }
 
 /// Indicator Domain Object
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, )]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub struct Indicator {
     #[serde(flatten)]
@@ -411,8 +417,12 @@ impl IndicatorBuilder {
 
     pub fn build(self) -> Result<Indicator, BuilderError> {
         let pattern = self.pattern.ok_or(BuilderError::MissingField("pattern"))?;
-        let pattern_type = self.pattern_type.ok_or(BuilderError::MissingField("pattern_type"))?;
-        let valid_from = self.valid_from.ok_or(BuilderError::MissingField("valid_from"))?;
+        let pattern_type = self
+            .pattern_type
+            .ok_or(BuilderError::MissingField("pattern_type"))?;
+        let valid_from = self
+            .valid_from
+            .ok_or(BuilderError::MissingField("valid_from"))?;
 
         // Optionally validate STIX patterns
         if self.validate_pattern && pattern_type == IndicatorPatternType::Stix {
@@ -464,7 +474,7 @@ impl From<Malware> for crate::StixObjectEnum {
 }
 
 /// Sighting Domain Object
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, )]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub struct Sighting {
     #[serde(flatten)]
@@ -514,8 +524,12 @@ impl SightingBuilder {
 
     pub fn build(self) -> Result<Sighting, BuilderError> {
         let count = self.count.ok_or(BuilderError::MissingField("count"))?;
-        let sighting_of_ref = self.sighting_of_ref.ok_or(BuilderError::MissingField("sighting_of_ref"))?;
-        let where_sighted_refs = self.where_sighted_refs.ok_or(BuilderError::MissingField("where_sighted_refs"))?;
+        let sighting_of_ref = self
+            .sighting_of_ref
+            .ok_or(BuilderError::MissingField("sighting_of_ref"))?;
+        let where_sighted_refs = self
+            .where_sighted_refs
+            .ok_or(BuilderError::MissingField("where_sighted_refs"))?;
 
         let common = CommonProperties::new("sighting", self.created_by_ref);
 
@@ -566,7 +580,10 @@ mod tests {
         let s = serde_json::to_string(&idty).unwrap();
         let v: Value = serde_json::from_str(&s).unwrap();
         assert_eq!(v.get("type").and_then(Value::as_str).unwrap(), "identity");
-        assert_eq!(v.get("identity_class").and_then(Value::as_str).unwrap(), "organization");
+        assert_eq!(
+            v.get("identity_class").and_then(Value::as_str).unwrap(),
+            "organization"
+        );
         let id_field = v.get("id").and_then(Value::as_str).unwrap();
         assert!(id_field.starts_with("identity--"));
     }
@@ -599,7 +616,10 @@ mod tests {
         let s = serde_json::to_string(&ind).unwrap();
         let v: Value = serde_json::from_str(&s).unwrap();
         assert_eq!(v.get("type").and_then(Value::as_str).unwrap(), "indicator");
-        assert_eq!(v.get("pattern_type").and_then(Value::as_str).unwrap(), "stix");
+        assert_eq!(
+            v.get("pattern_type").and_then(Value::as_str).unwrap(),
+            "stix"
+        );
     }
 
     #[test]
@@ -614,7 +634,10 @@ mod tests {
         let j = serde_json::to_string(&s).unwrap();
         let v: Value = serde_json::from_str(&j).unwrap();
         assert_eq!(v.get("type").and_then(Value::as_str).unwrap(), "sighting");
-        assert_eq!(v.get("sighting_of_ref").and_then(Value::as_str).unwrap(), "malware--1111");
+        assert_eq!(
+            v.get("sighting_of_ref").and_then(Value::as_str).unwrap(),
+            "malware--1111"
+        );
     }
 
     #[test]
